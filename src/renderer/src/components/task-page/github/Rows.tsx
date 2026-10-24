@@ -6,7 +6,7 @@ import { formatPRDelta } from '@/components/task-page-pr-delta-summary'
 import {
   isTaskPageGitHubDraftPR,
   getTaskPageGitHubPRIconTone
-} from '@/components/task-page-github-work-item-status'
+} from '@/components/task-page/github/task-page-github-work-item-status'
 import {
   GitPullRequestDraft,
   GitPullRequest,
@@ -28,7 +28,7 @@ import {
 } from '../../task-page-source-context'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { translate } from '@/i18n/i18n'
-import { TaskPageGitHubWorkItemStateBadge } from '@/components/task-page-github-work-item-status-badge'
+import { TaskPageGitHubWorkItemStateBadge } from '@/components/task-page/github/task-page-github-work-item-status-badge'
 import RepoBadgeLabel from '@/components/repo/RepoBadgeLabel'
 import { GHAssigneesCell } from './AssigneesCell'
 import { PRReviewCell } from './ReviewCell'
@@ -51,7 +51,7 @@ export function TaskPageGitHubRows({
   const {
     repos,
     allWorktrees,
-    selectedRepos,
+    githubTaskRepos,
     openGitHubDetailPage,
     githubWorkItemMutation,
     filteredWorkItems,
@@ -148,7 +148,7 @@ export function TaskPageGitHubRows({
                       className="shrink-0 px-1.5 py-0"
                     />
                   ) : null}
-                  {selectedRepos.length > 1 && itemRepo ? (
+                  {githubTaskRepos.length > 1 && itemRepo ? (
                     // Why: disambiguate rows in the merged multi-repo list; a single-repo view doesn't need it.
                     <RepoBadgeLabel
                       name={itemRepo.displayName}
@@ -163,7 +163,7 @@ export function TaskPageGitHubRows({
                     {item.author ??
                       translate('auto.components.TaskPage.6430594b18', 'unknown author')}
                   </span>
-                  {selectedRepos.length === 1 && itemRepo ? (
+                  {githubTaskRepos.length === 1 && itemRepo ? (
                     <span>{itemRepo.displayName}</span>
                   ) : null}
                   {item.type === 'pr' && item.state === 'draft' ? (

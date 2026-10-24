@@ -7,6 +7,8 @@ import {
   getRateLimit,
   listTodos
 } from '../gitlab/client'
+import { getGlabKnownHosts } from '../gitlab/gl-utils'
+import { getRepoRoutingConnectionId } from '../../shared/execution-host'
 import { registerGitLabCiJobHandlers } from './gitlab-ci-job-handlers'
 import { registerGitLabIssueHandlers } from './gitlab-issue-handlers'
 import { registerGitLabMergeRequestMutationHandlers } from './gitlab-merge-request-mutation-handlers'
@@ -33,6 +35,13 @@ export function registerGitLabHandlers(store: Store): void {
       getRateLimit({ force: Boolean(args?.force), host: args?.host ?? null })
   )
 
+  // Why: answers from the repo's own execution context so the Tasks page can tell a
+  // self-hosted GitLab origin from a GitHub one without querying either forge.
+  ipcMain.handle('gitlab:knownHosts', async (_event, args: GitLabRepoSelectorArgs) => {
+    const repo = assertRegisteredRepo(args, store)
+    return getGlabKnownHosts(getRepoRoutingConnectionId(repo), ...localGitOptionArgs(store, repo))
+  })
+
   ipcMain.handle('gitlab:projectSlug', async (_event, args: GitLabRepoSelectorArgs) => {
     const repo = assertRegisteredRepo(args, store)
     return getProjectSlug(repo.path, repoConnectionId(repo), ...hostedReviewOptionArgs(store, repo))
@@ -44,9 +53,7 @@ export function registerGitLabHandlers(store: Store): void {
   registerGitLabMergeRequestMutationHandlers(store)
   registerGitLabCiJobHandlers(store)
 
-  // Why: My Todos surface — cross-project, user-scoped. The repoPath is
-  // only used for the registered-repo guard; `glab api todos` doesn't
-  // care about cwd because the endpoint is user-scoped.
+  // Todos are user-scoped; repoPath is only the registration guard.
   ipcMain.handle('gitlab:todos', async (_event, args: GitLabRepoSelectorArgs) => {
     const repo = assertRegisteredRepo(args, store)
     return listTodos(repo.path, repoConnectionId(repo), ...localGitOptionArgs(store, repo))
